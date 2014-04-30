@@ -1,0 +1,44 @@
+<testsuite>
+<requesttemplates>
+	<template>
+		<id>  </id>
+		<content>
+		<![CDATA[
+
+		]]>
+		</content>
+	</template>
+</requesttemplates>
+<case>
+	<request>
+		<templateid> </templateid>
+		<requestparams>
+			<!-- Iterate one or many-->
+			<param>
+				<name></name>
+				<value></value>
+			</param>
+		</requestparams>
+		<!-- RAW request Content -->
+		<content>
+		<![CDATA[
+
+		]]>
+		</content>
+	</request>
+	<verify>
+	<!-- Iterate one or many-->
+		<param> String or regular expression</param>
+		<param> String or regular expression</param>
+		<param> String or regular expression</param>
+	</verify>
+	<verifynegative>
+	<!-- Iterate Zero or many-->
+		<param> String or regular expression</param>
+		<param> String or regular expression</param>
+		<param> String or regular expression</param>
+	</verifynegative>
+	
+</case>
+
+</testsuite>
