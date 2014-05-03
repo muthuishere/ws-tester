@@ -1,0 +1,39 @@
+<testsuite>
+<case>
+	<request>
+		
+		<!-- RAW request Content -->
+		<content>
+		<![CDATA[
+		<?xml version='1.0' encoding='UTF-8'?>
+       <soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsd='http://www.resolve-systems.com/resolve/WebServiceListener/xsd'>
+   <soap:Header/>
+   <soap:Body>
+      <xsd:login>
+         <!--Optional:-->
+         <xsd:username>mnavaneethakrishnan</xsd:username>
+         <!--Optional:-->
+         <xsd:password>Superstar1*</xsd:password>
+      </xsd:login>
+   </soap:Body>
+</soap:Envelope>
+		]]>
+		</content>
+	</request>
+	<verify>
+	<!-- Iterate one or many-->
+		<param><![CDATA[
+		token
+		]]></param>
+		
+	</verify>
+	<verifynegative>
+	<!-- Iterate Zero or many-->
+		<param><![CDATA[
+		error
+		]]></param>
+	</verifynegative>
+	
+</case>
+
+</testsuite>
