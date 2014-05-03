@@ -1,59 +1,17 @@
-// The Adapter for the OCOM service.
+package com.ws.application
 
 
 
-import java.util.concurrent.*
-import java.util.*
-import groovy.json.JsonSlurper
-import groovy.json.JsonBuilder
-import java.security.MessageDigest
-import org.apache.http.Header
-import org.apache.http.HttpResponse
-import org.apache.http.client.HttpClient
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.client.HttpClientBuilder
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
-import org.apache.http.auth.UsernamePasswordCredentials
-import org.apache.http.auth.AuthScope
-import org.apache.http.impl.client.BasicCredentialsProvider
-import org.apache.http.conn.ssl.SSLContextBuilder
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory
-import org.apache.http.conn.ssl.X509HostnameVerifier
-import org.apache.http.client.config.RequestConfig
+import com.ws.beans.TestSuite
 import wslite.soap.*
 
 
-class TestSuite {
-    // properties
-    Testcase[] testcases	
-	Date startTime
-	Date endTime
-	boolean success
-	String description
+
+public class TestResolve {
 
 
-}
 
-class Testcase {
-    // properties
-    String id
-	String	name
-	String request
-	TestCondition[] positiveConditions
-	TestCondition[] negativeConditions
-	String response	
-    String result	
-    Date startTime
-	Date endTime
 
-}
-
-class TestCondition{
-	boolean positive
-	String condition
-}
 
 def getInfo(testargs) {
 
@@ -112,11 +70,7 @@ cli.with
  //create object of request , response , Start time , End time , Success Failure
 
  def input = new File('hello.txt')
-if(! input.exists() ){
 
-
-}
-assert input.canRead()
 
 
  def client = new SOAPClient(activeConfig.resolveEndPointURL)
@@ -157,3 +111,6 @@ def response =client.send(SOAPVersion.V1_2,
 
 
 println response.text
+
+
+}

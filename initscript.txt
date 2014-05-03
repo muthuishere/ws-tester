@@ -1,0 +1,2 @@
+gradle initProject -PinitPlugins=groovy,java
+gradle eclipse

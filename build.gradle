@@ -1,29 +1,30 @@
 apply plugin: 'eclipse'
+apply plugin: 'java'
 apply plugin: 'groovy'
-
+ 
 repositories {
     mavenCentral()
-	flatDir { dirs 'lib' }
 }
-
+ 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.1.6'
-    testCompile 'junit:junit:4.11'
+    compile 'org.codehaus.groovy:groovy-all:2.2.1'  
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+	testCompile "org.codehaus.groovy:groovy-all:2.2.1"
+	compile fileTree(dir: 'lib', includes: ['*.jar'])
+	compile 'org.codehaus.groovy:groovy-all:2.2.1'
+	
 }
-
-
-task initProject(description: 'Initialize project directory structure.') << {
-    // Default package to be created in each src dir.
-    def defaultPackage = 'com/wstest/app'
-    
-    ['java', 'groovy', 'resources'].each {
-        // convention.sourceSets contains the directory structure
-        // for our Groovy project. So we use this struture
-        // and make a directory for each node.
-        convention.sourceSets.all."${it}".srcDirs*.each { dir ->
-            def newDir = new File(dir, defaultPackage)
-            logger.info "Creating directory $newDir"  // gradle -i shows this message.
-            newDir.mkdirs()  // Create dir.
+ 
+task initProject () << {
+    if (hasProperty(initPlugins)) {
+        initPlugins.split(',').each { plug -> 
+            project.apply { 
+                plugin(plug.trim()) 
+            } 
         }
+    }
+ 
+    project.sourceSets*.allSource.srcDirTrees.flatten().dir.each { dir ->
+        dir.mkdirs()
     }
 }
