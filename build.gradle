@@ -12,6 +12,8 @@ dependencies {
 	testCompile "org.codehaus.groovy:groovy-all:2.2.1"
 	compile fileTree(dir: 'lib', includes: ['*.jar'])
 	compile 'org.codehaus.groovy:groovy-all:2.2.1'
+	compile 'commons-cli:commons-cli:1.2'
+	
 	
 }
  

@@ -1,5 +1,5 @@
 <testsuite>
-<case>
+<testcase>
 <name>TC_001</name>
 	<request>
 		
@@ -7,15 +7,13 @@
 		<content>
 		<![CDATA[
 		<?xml version='1.0' encoding='UTF-8'?>
-       <soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsd='http://www.resolve-systems.com/resolve/WebServiceListener/xsd'>
+      <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:web="http://www.webserviceX.NET">
    <soap:Header/>
    <soap:Body>
-      <xsd:login>
+      <web:GetAirportInformationByCountry>
          <!--Optional:-->
-         <xsd:username>mnavaneethakrishnan</xsd:username>
-         <!--Optional:-->
-         <xsd:password>Superstar1*</xsd:password>
-      </xsd:login>
+         <web:country>INDIA</web:country>
+      </web:GetAirportInformationByCountry>
    </soap:Body>
 </soap:Envelope>
 		]]>
@@ -24,7 +22,7 @@
 	<verify>
 	<!-- Iterate one or many-->
 		<param><![CDATA[
-		token
+		DELHI
 		]]></param>
 		
 	</verify>
@@ -35,6 +33,6 @@
 		]]></param>
 	</verifynegative>
 	
-</case>
+</testcase>
 
 </testsuite>

@@ -1,5 +1,5 @@
 <testsuite>
-<case>
+<testcase>
 <name>TC_001</name>
 	<request>
 		
@@ -35,6 +35,6 @@
 		]]></param>
 	</verifynegative>
 	
-</case>
+</testcase>
 
 </testsuite>

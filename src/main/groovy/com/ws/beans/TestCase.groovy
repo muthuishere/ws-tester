@@ -4,7 +4,7 @@ import java.util.Date;
 
 import com.ws.beans.TestCondition;
 
-class Testcase {
+class TestCase {
 	// properties
 	String id
 	String	name
@@ -12,7 +12,13 @@ class Testcase {
 	TestCondition[] positiveConditions
 	TestCondition[] negativeConditions
 	String response
-	String result
+	String errDescription
+	boolean success
+	
 	Date startTime
 	Date endTime
+	
+	String toString() {
+		dump()
+	}
 }

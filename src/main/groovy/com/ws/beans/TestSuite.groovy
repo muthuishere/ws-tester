@@ -2,15 +2,19 @@ package com.ws.beans
 
 import java.util.Date;
 
-import com.ws.beans.Testcase;
+import com.ws.beans.TestCase;
 
 class TestSuite {
 
 	// properties
-	Testcase[] testcases
+	List<TestCase> testCases=new ArrayList<TestCase>();
 	Date startTime
 	Date endTime
 	boolean success
+	boolean completed
 	String description
-
+	
+	String toString() {
+		dump()
+	}
 }
