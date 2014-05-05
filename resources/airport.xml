@@ -12,7 +12,7 @@
    <soap:Body>
       <web:GetAirportInformationByCountry>
          <!--Optional:-->
-         <web:country>INDIA</web:country>
+         <web:country>sri lanka</web:country>
       </web:GetAirportInformationByCountry>
    </soap:Body>
 </soap:Envelope>
@@ -21,9 +21,7 @@
 	</request>
 	<verify>
 	<!-- Iterate one or many-->
-		<param><![CDATA[
-		DELHI
-		]]></param>
+		<param><![CDATA[MINNERIYA]]></param>
 		
 	</verify>
 	<verifynegative>
