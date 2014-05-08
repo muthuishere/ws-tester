@@ -2,12 +2,14 @@ package com.ws.application
 
 import com.ws.beans.TestCase;
 import com.ws.beans.TestCondition
+import com.ws.beans.TestException
 import com.ws.beans.TestSuite
 import com.ws.helpers.Constants
 import java.util.Date;
 import wslite.soap.*
 class TestWebservice {
 
+	def activeConfig
 	def getConditions(def testConditions,boolean conditionPositive){
 
 
@@ -15,103 +17,149 @@ class TestWebservice {
 
 
 
-		testConditions.param.each{
+		if(null != testConditions){
+			testConditions.param.each{
 
-			conditions.add(
-					new TestCondition(
+				conditions.add(
+						new TestCondition(
 
-					condition:trimSOAPreq(it.text()),
-					positive:conditionPositive
-					)
-					)
+						condition:trimSOAPreq(it.text()),
+						positive:conditionPositive
+						)
+						)
+			}
 		}
-
-
 		return conditions;
 	}
 
-	def executeTestCase(def activeConfig,TestCase testCase) {
+	def getException(def exceptionNode){
+
+
+		TestException exception=null;
+
+		if(null != exceptionNode){
+			exception=new TestException(
+					text:trimSOAPreq(exceptionNode?.param?.text())
+					);
+		}
+		return exception;
+	}
+
+	def getSoapResponse(def testCase) throws Exception{
+
+
+		def client = new SOAPClient(activeConfig.wsEndPointURL);
+
+		if(activeConfig.proxy){
+
+			def proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(activeConfig.proxy.host, activeConfig.proxy.port))
+
+			if(activeConfig.proxy.user){
+				Authenticator.setDefault(new Authenticator() {
+							protected PasswordAuthentication getPasswordAuthentication() {
+								return new PasswordAuthentication(activeConfig.proxy.user,activeConfig.proxy.password.toCharArray())
+							}
+						})
+			}
+
+			client.httpClient.proxy = proxy
+		}
+
+		//SOAPVersion.V1_2,
+
+		def response =client.send(
+				connectTimeout:activeConfig.connectionTimeout,
+				readTimeout:activeConfig.readTimeout,
+				testCase.request
+				)
+
+
+		return response.text;
+
+
+	}
+	def executeTestCase(TestCase testCase) {
 
 		//
 		testCase.startTime=new Date()
 		String failDescription=""
 		boolean flgresultPositive=true;
+		def flgsoapException=null;
+		def soapresponse =""
 		try{
 
 
+			soapresponse=getSoapResponse(testCase)
 
 
-			def client = new SOAPClient(activeConfig.wsEndPointURL);
 
-			if(activeConfig.proxy){
+		}catch(Throwable t){
 
-				def proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(activeConfig.proxy.host, activeConfig.proxy.port))
 
-				if(activeConfig.proxy.user){
-					Authenticator.setDefault(new Authenticator() {
-								protected PasswordAuthentication getPasswordAuthentication() {
-									return new PasswordAuthentication(activeConfig.proxy.user,activeConfig.proxy.password.toCharArray())
-								}
-							})
+			flgsoapException=t.getMessage()
+
+			println ("==========" + t.getMessage() +"==========="	)
+			t.printStackTrace();
+			//Fix for Error not Appearing
+
+			if(null != testCase?.exception){
+
+				if( testCase.exception.hasValidException(flgsoapException) == false ){
+					failDescription=failDescription + " Invalid Exception Message" +t.getMessage();
+					flgresultPositive=false;
+				}else{
+					soapresponse=" Exception Thrown as expected " +t.getMessage()
 				}
 
-				client.httpClient.proxy = proxy
+
+
+			}else{
+				failDescription=failDescription + t.getMessage();
+				flgresultPositive=false;
 			}
 
-			//SOAPVersion.V1_2,
 
-			def response =client.send(
-					connectTimeout:activeConfig.connectionTimeout,
-					readTimeout:activeConfig.readTimeout,
-					testCase.request
-					)
+		}
 
-			testCase.response=response.text;
-			
 
+		if( null != testCase.exception){
 			testCase.positiveConditions.eachWithIndex() { positiveCondition, i ->
 
-				boolean flgVerify=verify(response.text,positiveCondition)
+				boolean flgVerify=verify(soapresponse,positiveCondition)
 				flgresultPositive=flgresultPositive & flgVerify
-				
+
 				if(!flgVerify)
 					failDescription=failDescription + " Verification failed for Condition " + positiveCondition.condition + Constants.NEW_LINE
-				
-					
-				
-				
+
+
+
+
 
 			};
 
 
 			testCase.negativeConditions.eachWithIndex() { negativeCondition, i ->
 
-				boolean flgVerify=verify(response.text,negativeCondition)
-				
-				
-				flgresultPositive=flgresultPositive & verify(response.text,negativeCondition)
-				
+				boolean flgVerify=verify(soapresponse,negativeCondition)
+
+
+				flgresultPositive=flgresultPositive & flgVerify
+
 				if(!flgVerify)
-				failDescription=failDescription + " Negative Verification failed for Condition " + negativeCondition.condition + Constants.NEW_LINE
-			
-				
+					failDescription=failDescription + " Negative Verification failed for Condition " + negativeCondition.condition + Constants.NEW_LINE
+
+
 
 			};
 
 
-		}catch(Throwable t){
-
-		println("Error"+t)
-			t.printStackTrace();
-			testCase.errDescription=failDescription + t.getMessage();
-			flgresultPositive=false;
-
-		}finally{
-		
-			testCase.errDescription=failDescription;
-			testCase.success=flgresultPositive;
-			testCase.endTime=new Date()
 		}
+		testCase.response=soapresponse;
+
+		testCase.errDescription=failDescription;
+		testCase.success=flgresultPositive;
+		testCase.endTime=new Date()
+
 
 		return testCase
 	}
@@ -121,13 +169,13 @@ class TestWebservice {
 		print("verifying response contains condition" + testCondition.toString() )
 		print("response.contains(testCondition.condition) " + response.contains(testCondition.condition)  + "testCondition.positive" + testCondition.positive)
 		println("==")
-		
+
 		if(response.contains(testCondition.condition) && testCondition.positive)
 			return true
 
-			if(response.contains(testCondition.condition) ==false && testCondition.positive==false)
-				return true
-				
+		if(response.contains(testCondition.condition) ==false && testCondition.positive==false)
+			return true
+
 		return false;
 
 
@@ -135,12 +183,12 @@ class TestWebservice {
 
 	def trimSOAPreq(String txt){
 
-		return txt.trim()
+		return txt?.trim()
 	}
 
 
 
-	public TestSuite startTest(def activeConfig,def testCaseFile) {
+	public TestSuite startTest(def testCaseFile) {
 
 
 
@@ -204,8 +252,8 @@ class TestWebservice {
 						name:it.name.text(),
 						request:trimSOAPreq(it.request[0].content.text()),
 						positiveConditions:getConditions(it.verify,true),
-						negativeConditions:getConditions(it.verifynegative,false)
-
+						negativeConditions:getConditions(it.verifynegative,false),
+						exception:getException(it.verifyexception)
 						)
 						)
 
@@ -217,7 +265,7 @@ class TestWebservice {
 
 			for ( testCase in initTestCases ) {
 				println("Executing testscase for"+ testCase.toString())
-				TestCase tc=executeTestCase(activeConfig,testCase)
+				TestCase tc=executeTestCase(testCase)
 				flgSuccess=flgSuccess & tc.success;
 				suite.testCases.push(tc)
 			}
@@ -227,7 +275,7 @@ class TestWebservice {
 
 
 		}catch(Throwable t){
-		println("Error"+t)
+			println("Error"+t)
 			t.printStackTrace()
 
 			suite.description=t.getMessage();

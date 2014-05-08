@@ -50,13 +50,33 @@ public class TestResolve {
 	}
 
 
+	static Test(){
+		
+		def appConfig = new ConfigSlurper("localdev").parse(com.ws.resources.Config)
+		TestWebservice tester= new TestWebservice(
+			activeConfig:appConfig
+			);
+		
+		
+		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml' )
+
+		println(result.toString());
+		
+		
+		
+		
+		println(result.toFormattedString());
+		
+	}
 	static main(args) {
 
-		TestWebservice tester= new TestWebservice();
+		//-f  C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml  -e localdev 
+		//-c C:\\muthu\\resolve\\test\\ws-tester\\resources\\Config.groovy
+		
 
 		//	String[] tars="-e localdev -f  'C:\\muthu\\gitworkspace\\ws-tester\\resources\\testcase.xml'";
 		def options=getInfo(args)
-		def activeConfig =null;
+		def appConfig =null;
 		if(options.containsKey("configuration") ) {
 			println("has configuration")
 			def configFile = new File(options["configuration"].toString())
@@ -66,11 +86,11 @@ public class TestResolve {
 					System.exit(1)
 				}
 
-			activeConfig = new ConfigSlurper("current").parse(configFile.toURL())
+			appConfig = new ConfigSlurper("current").parse(configFile.toURL())
 			
 		}else if(options.containsKey("environment")) {
 			println("has environment")
-				activeConfig = new ConfigSlurper(options["environment"]).parse(com.ws.resources.Config)
+				appConfig = new ConfigSlurper(options["environment"]).parse(com.ws.resources.Config)
 		}else{
 			getInfo("")
 			System.exit(1);
@@ -79,7 +99,12 @@ public class TestResolve {
 		//def options = ["testcasefile": "C:\\muthu\\resolve\\test\\ws-tester\\resources\\airport.xml", "environment": "localdev"]
 		
 		
-		TestSuite result= 	tester.startTest(activeConfig,options["testcasefile"] )
+		
+		TestWebservice tester= new TestWebservice(
+			activeConfig:appConfig
+			);
+		
+		TestSuite result= 	tester.startTest(options["testcasefile"] )
 
 		println(result.toString());
 		

@@ -12,6 +12,9 @@ class TestCase {
 	String request
 	TestCondition[] positiveConditions
 	TestCondition[] negativeConditions
+	TestException exception
+	
+	
 	String response
 	String errDescription
 	boolean success
@@ -41,7 +44,7 @@ class TestCase {
 		sb.append("RESULT: SUCCESS                   ").append(Constants.NEW_LINE)
 		else{
 		sb.append("RESULT: FAILURE                   ").append(Constants.NEW_LINE)
-		sb.append("ERROR : $errDescription           ").append(Constants.NEW_LINE)
+		sb.append("ERROR :"+errDescription+"        ").append(Constants.NEW_LINE)
 		}
 		
 		sb.append("-----------------------------------").append(Constants.NEW_LINE)

@@ -4,6 +4,7 @@ class TestCondition {
 	boolean positive
 	String condition
 	
+	
 	String toString() {
 		dump()
 	}

@@ -59,6 +59,7 @@ class TestSuite {
 		sb.append("-------End Testcase Results---------").append(Constants.NEW_LINE)
 		sb.append("-----------------------------------").append(Constants.NEW_LINE)
 		
+		sb.append("-------End Test Suite Results--------").append(Constants.NEW_LINE)
 		return sb.toString();
 	}
 	

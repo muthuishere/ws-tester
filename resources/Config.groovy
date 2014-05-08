@@ -9,8 +9,8 @@ readTimeout=57000
 
 environments {
   current {
-	wsEndPointURL="http://www.webservicex.net/airport.asmx"
-    //wsEndPointURL="http://192.168.248.174:8080/resolve/webservice/WebserviceListener.WebserviceListenerHttpSoap12Endpoint/"
+	//wsEndPointURL="http://www.webservicex.net/airport.asmx"
+    wsEndPointURL="http://192.168.248.174:8080/resolve/webservice/WebserviceListener.WebserviceListenerHttpSoap12Endpoint/"
      proxy {
       host="10.248.44.17"
 	  port= 8080
