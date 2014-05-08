@@ -9,8 +9,17 @@ import java.util.Date;
 import wslite.soap.*
 class TestWebservice {
 
-	def activeConfig
-	def getConditions(def testConditions,boolean conditionPositive){
+	protected def activeConfig
+
+	public TestWebservice(def config){
+
+		this.activeConfig=config
+	}
+
+	public TestWebservice(){
+	}
+
+	def parseConditions(def testConditions,boolean conditionPositive){
 
 
 		def conditions=[];
@@ -32,7 +41,7 @@ class TestWebservice {
 		return conditions;
 	}
 
-	def getException(def exceptionNode){
+	def parseException(def exceptionNode){
 
 
 		TestException exception=null;
@@ -45,7 +54,7 @@ class TestWebservice {
 		return exception;
 	}
 
-	def getSoapResponse(def testCase) throws Exception{
+	def getSoapResponse(def request) throws Exception{
 
 
 		def client = new SOAPClient(activeConfig.wsEndPointURL);
@@ -70,59 +79,41 @@ class TestWebservice {
 		def response =client.send(
 				connectTimeout:activeConfig.connectionTimeout,
 				readTimeout:activeConfig.readTimeout,
-				testCase.request
+				request
 				)
 
 
+		println(response.text)
 		return response.text;
 
 
 	}
-	def executeTestCase(TestCase testCase) {
 
-		//
-		testCase.startTime=new Date()
-		String failDescription=""
+	def verifyConditions(def testCase,def soapresponse,Exception flgsoapException){
+
+
 		boolean flgresultPositive=true;
-		def flgsoapException=null;
-		def soapresponse =""
-		try{
+		
+		def failDescription =""
 
-
-			soapresponse=getSoapResponse(testCase)
-
-
-
-		}catch(Throwable t){
-
-
-			flgsoapException=t.getMessage()
-
-			println ("==========" + t.getMessage() +"==========="	)
-			t.printStackTrace();
-			//Fix for Error not Appearing
-
+		if(null != flgsoapException){
 			if(null != testCase?.exception){
-
-				if( testCase.exception.hasValidException(flgsoapException) == false ){
-					failDescription=failDescription + " Invalid Exception Message" +t.getMessage();
+	
+				if( testCase.exception.hasValidException(flgsoapException.getMessage()) == false ){
+					failDescription=failDescription + " Invalid Exception Message" +flgsoapException.getMessage();
 					flgresultPositive=false;
 				}else{
-					soapresponse=" Exception Thrown as expected " +t.getMessage()
+					soapresponse=" Exception Thrown as expected " +flgsoapException.getMessage()
 				}
-
-
-
 			}else{
-				failDescription=failDescription + t.getMessage();
+				failDescription=failDescription + flgsoapException.getMessage();
 				flgresultPositive=false;
 			}
-
-
 		}
 
+		else{
 
-		if( null != testCase.exception){
+
 			testCase.positiveConditions.eachWithIndex() { positiveCondition, i ->
 
 				boolean flgVerify=verify(soapresponse,positiveCondition)
@@ -130,11 +121,6 @@ class TestWebservice {
 
 				if(!flgVerify)
 					failDescription=failDescription + " Verification failed for Condition " + positiveCondition.condition + Constants.NEW_LINE
-
-
-
-
-
 			};
 
 
@@ -147,18 +133,49 @@ class TestWebservice {
 
 				if(!flgVerify)
 					failDescription=failDescription + " Negative Verification failed for Condition " + negativeCondition.condition + Constants.NEW_LINE
-
-
-
 			};
-
-
 		}
+
 		testCase.response=soapresponse;
 
 		testCase.errDescription=failDescription;
 		testCase.success=flgresultPositive;
+	}
+	def executeTestCase(TestCase testCase) {
+
+		//
+		testCase.startTime=new Date()
+		String failDescription=""
+		boolean flgresultPositive=true;
+		def flgsoapException=null;
+		def soapresponse =""
+		try{
+
+
+			soapresponse=getSoapResponse(testCase.request)
+
+
+
+		}catch(Exception t){
+
+			flgsoapException=t
+
+
+			println ("==========" + t.getMessage() +"==========="	)
+			t.printStackTrace();
+			//Fix for Error not Appearing
+
+
+
+
+		}
+
+		verifyConditions( testCase, soapresponse, flgsoapException)
+
+
+
 		testCase.endTime=new Date()
+
 
 
 		return testCase
@@ -186,20 +203,43 @@ class TestWebservice {
 		return txt?.trim()
 	}
 
+	public ArrayList parseTestSuite(String txt){
 
+
+		println("Parsing Testsuite for generic ws testcases ")
+		//Parse xml and set it in Testcase object
+		def testcaseNodes = new XmlSlurper().parseText(txt)
+
+		def initTestCases=[]
+
+		int i=0;
+		//	println("checking for"+ testcaseNodes.dump())
+		testcaseNodes.testcase.each{
+
+			i++;
+			//	println("Iterating for"+ it.text())
+
+			initTestCases.push(
+					new TestCase(
+					id:String.format('%03d',i),
+					name:it.name.text(),
+					request:trimSOAPreq(it.request[0].content.text()),
+					positiveConditions:parseConditions(it.verify,true),
+					negativeConditions:parseConditions(it.verifynegative,false),
+					exception:parseException(it.verifyexception)
+					)
+					)
+
+
+		}
+
+		return initTestCases;
+
+	}
 
 	public TestSuite startTest(def testCaseFile) {
 
 
-
-
-
-
-
-
-
-
-		def lstResults=new ArrayList();
 
 		//	println(activeConfig.dump())
 
@@ -208,6 +248,7 @@ class TestWebservice {
 		//Initialize Test suite assuming result would fail
 		def suite=new TestSuite(startTime:new Date(),success:false);
 
+		def lstResults=new ArrayList();
 
 		try{
 
@@ -234,31 +275,9 @@ class TestWebservice {
 			}
 
 
-			//Parse xml and set it in Testcase object
-			def testcaseNodes = new XmlSlurper().parse(testCaseFilePointer)
-
-			def initTestCases=[]
-
-			int i=0;
-			//	println("checking for"+ testcaseNodes.dump())
-			testcaseNodes.testcase.each{
-
-				i++;
-				//	println("Iterating for"+ it.text())
-
-				initTestCases.push(
-						new TestCase(
-						id:String.format('%03d',i),
-						name:it.name.text(),
-						request:trimSOAPreq(it.request[0].content.text()),
-						positiveConditions:getConditions(it.verify,true),
-						negativeConditions:getConditions(it.verifynegative,false),
-						exception:getException(it.verifyexception)
-						)
-						)
+			def initTestCases=parseTestSuite( testCaseFilePointer.text)
 
 
-			}
 
 
 			//Testcases completed check test cases are parsed fine

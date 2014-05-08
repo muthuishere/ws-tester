@@ -1,30 +1,26 @@
 <testsuite>
 <testcase>
-<name>TC_0012</name>
+<name>TC_001</name>
 	<request>
+		<resolverunbook name="LTE.VoiceDiagnostic">
 		
-		<!-- RAW request Content -->
-		<content>
-		<![CDATA[
-		<?xml version='1.0' encoding='UTF-8'?>
-       <soap:Envelope xmlns:soap='http://www.w3.org/2003/05/soap-envelope' xmlns:xsd='http://www.resolve-systems.com/resolve/WebServiceListener/xsd'>
-   <soap:Header/>
-   <soap:Body>
-      <xsd:login>
-         <!--Optional:-->
-         <xsd:username>mnavaneethakrishnan</xsd:username>
-         <!--Optional:-->
-         <xsd:password>Superstar1*</xsd:password>
-      </xsd:login>
-   </soap:Body>
-</soap:Envelope>
-		]]>
-		</content>
+	
+		
+			<params>
+				<!-- Iterate one or many-->	
+				<param name="MSISDN" value="447830750719"/>
+				
+				
+			</params>
+		</resolverunbook>
+		<!-- RAW request Content if required -->
+		<content></content>
+		
 	</request>
 	<verify>
 	<!-- Iterate one or many-->
 		<param><![CDATA[
-		return
+		PROCESSID
 		]]></param>
 		
 	</verify>

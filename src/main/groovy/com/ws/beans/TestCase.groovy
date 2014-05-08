@@ -10,6 +10,7 @@ class TestCase {
 	String id
 	String	name
 	String request
+	
 	TestCondition[] positiveConditions
 	TestCondition[] negativeConditions
 	TestException exception

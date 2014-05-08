@@ -52,10 +52,19 @@ public class TestResolve {
 
 	static Test(){
 		
-		def appConfig = new ConfigSlurper("localdev").parse(com.ws.resources.Config)
-		TestWebservice tester= new TestWebservice(
-			activeConfig:appConfig
-			);
+		
+		def configFile = new File("C:\\muthu\\resolve\\test\\ws-tester\\resources\\Config.groovy")
+		
+		if(!configFile.exists()){
+			println("not exists")
+			
+			System.exit(1)
+		}
+		
+	def	appConfig = new ConfigSlurper("current").parse(configFile.toURL())
+		
+		
+		TestResolveWebService tester= new TestResolveWebService(appConfig);
 		
 		
 		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml' )
@@ -67,13 +76,18 @@ public class TestResolve {
 		
 		println(result.toFormattedString());
 		
+		println("hi")
+		
 	}
 	static main(args) {
 
 		//-f  C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml  -e localdev 
 		//-c C:\\muthu\\resolve\\test\\ws-tester\\resources\\Config.groovy
 		
-
+if(1 == 1){
+	Test();
+	System.exit(0);
+	}
 		//	String[] tars="-e localdev -f  'C:\\muthu\\gitworkspace\\ws-tester\\resources\\testcase.xml'";
 		def options=getInfo(args)
 		def appConfig =null;

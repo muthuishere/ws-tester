@@ -6,6 +6,8 @@
 connectionTimeout=57000
 //Read Timeout in milliseconds
 readTimeout=57000
+resolveuser="mnavaneethakrishnan"
+resolvepwd="Superstar1*"
 
 environments {
   current {
@@ -18,6 +20,8 @@ environments {
 	  password= "welcome123"
     }
 	connectionTimeout=9000
+	resolveuser="mnavaneethakrishnan"
+	resolvepwd="Superstar1*"
   }
   
 }
