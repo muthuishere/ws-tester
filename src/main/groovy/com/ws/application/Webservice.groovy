@@ -1,22 +1,24 @@
 package com.ws.application
 
-import com.ws.beans.TestCase;
+import com.ws.beans.ResolveTestCase;
 import com.ws.beans.TestCondition
 import com.ws.beans.TestException
 import com.ws.beans.TestSuite
 import com.ws.helpers.Constants
 import java.util.Date;
 import wslite.soap.*
-class TestWebservice {
+
+
+class Webservice {
 
 	protected def activeConfig
 
-	public TestWebservice(def config){
+	public Webservice(def config){
 
 		this.activeConfig=config
 	}
 
-	public TestWebservice(){
+	public Webservice(){
 	}
 
 	def parseConditions(def testConditions,boolean conditionPositive){
@@ -88,98 +90,8 @@ class TestWebservice {
 
 
 	}
-
-	def verifyConditions(def testCase,def soapresponse,Exception flgsoapException){
-
-
-		boolean flgresultPositive=true;
-		
-		def failDescription =""
-
-		if(null != flgsoapException){
-			if(null != testCase?.exception){
 	
-				if( testCase.exception.hasValidException(flgsoapException.getMessage()) == false ){
-					failDescription=failDescription + " Invalid Exception Message" +flgsoapException.getMessage();
-					flgresultPositive=false;
-				}else{
-					soapresponse=" Exception Thrown as expected " +flgsoapException.getMessage()
-				}
-			}else{
-				failDescription=failDescription + flgsoapException.getMessage();
-				flgresultPositive=false;
-			}
-		}
-
-		else{
-
-
-			testCase.positiveConditions.eachWithIndex() { positiveCondition, i ->
-
-				boolean flgVerify=verify(soapresponse,positiveCondition)
-				flgresultPositive=flgresultPositive & flgVerify
-
-				if(!flgVerify)
-					failDescription=failDescription + " Verification failed for Condition " + positiveCondition.condition + Constants.NEW_LINE
-			};
-
-
-			testCase.negativeConditions.eachWithIndex() { negativeCondition, i ->
-
-				boolean flgVerify=verify(soapresponse,negativeCondition)
-
-
-				flgresultPositive=flgresultPositive & flgVerify
-
-				if(!flgVerify)
-					failDescription=failDescription + " Negative Verification failed for Condition " + negativeCondition.condition + Constants.NEW_LINE
-			};
-		}
-
-		testCase.response=soapresponse;
-
-		testCase.errDescription=failDescription;
-		testCase.success=flgresultPositive;
-	}
-	def executeTestCase(TestCase testCase) {
-
-		//
-		testCase.startTime=new Date()
-		String failDescription=""
-		boolean flgresultPositive=true;
-		def flgsoapException=null;
-		def soapresponse =""
-		try{
-
-
-			soapresponse=getSoapResponse(testCase.request)
-
-
-
-		}catch(Exception t){
-
-			flgsoapException=t
-
-
-			println ("==========" + t.getMessage() +"==========="	)
-			t.printStackTrace();
-			//Fix for Error not Appearing
-
-
-
-
-		}
-
-		verifyConditions( testCase, soapresponse, flgsoapException)
-
-
-
-		testCase.endTime=new Date()
-
-
-
-		return testCase
-	}
+	
 
 	boolean verify(String response,TestCondition testCondition){
 		println("==")
@@ -197,6 +109,121 @@ class TestWebservice {
 
 
 	}
+	
+	
+	def verifyException(def testCase,Exception flgsoapException){
+	
+	
+			boolean flgresultPositive=true;
+			def soapresponse=""
+			def failDescription =""
+	
+			if(null != flgsoapException){
+				if(null != testCase?.exception){
+		
+					if( testCase.exception.hasValidException(flgsoapException.getMessage()) == false ){
+						failDescription=failDescription + " Invalid Exception Message" +flgsoapException.getMessage();
+						flgresultPositive=false;
+					}else{
+						soapresponse=" Exception Thrown as expected " +flgsoapException.getMessage()
+					}
+				}else{
+					failDescription=failDescription + flgsoapException.getMessage();
+					flgresultPositive=false;
+				}
+				
+						testCase.response=soapresponse;
+				
+						testCase.errDescription=failDescription;
+						testCase.success=flgresultPositive;
+						return true;
+						
+			}
+	
+			return false;
+		}
+	
+		def verifyConditions(def testCase,def soapresponse){
+	
+	
+			boolean flgresultPositive=true;
+			
+			def failDescription =""
+	
+			
+	
+	
+				testCase.positiveConditions.eachWithIndex() { positiveCondition, i ->
+	
+					boolean flgVerify=verify(soapresponse,positiveCondition)
+					flgresultPositive=flgresultPositive & flgVerify
+	
+					if(!flgVerify)
+						failDescription=failDescription + " Verification failed for Condition " + positiveCondition.condition + Constants.NEW_LINE
+				};
+	
+	
+				testCase.negativeConditions.eachWithIndex() { negativeCondition, i ->
+	
+					boolean flgVerify=verify(soapresponse,negativeCondition)
+	
+	
+					flgresultPositive=flgresultPositive & flgVerify
+	
+					if(!flgVerify)
+						failDescription=failDescription + " Negative Verification failed for Condition " + negativeCondition.condition + Constants.NEW_LINE
+				};
+			
+	
+			testCase.response=soapresponse;
+	
+			testCase.errDescription=failDescription;
+			testCase.success=flgresultPositive;
+		}
+		
+		public def executeTestCase(def testCase) {
+	
+			println("Executing Generic Webservice test")
+			//
+			testCase.startTime=new Date()
+			String failDescription=""
+			boolean flgresultPositive=true;
+			def flgsoapException=null;
+			def soapresponse =""
+			try{
+	
+	
+				soapresponse=getSoapResponse(testCase.request)
+	
+	
+	
+			}catch(Exception t){
+	
+				flgsoapException=t
+	
+	
+				println ("==========" + t.getMessage() +"==========="	)
+				t.printStackTrace();
+				//Fix for Error not Appearing
+	
+	
+	
+	
+			}
+	
+			boolean testCaseCompleted=verifyException( testCase,  flgsoapException)
+			
+			if(!testCaseCompleted)
+				verifyConditions( testCase, soapresponse)
+	
+	
+	
+			testCase.endTime=new Date()
+	
+	
+	
+			return testCase
+		}
 
 	def trimSOAPreq(String txt){
 
@@ -220,7 +247,7 @@ class TestWebservice {
 			//	println("Iterating for"+ it.text())
 
 			initTestCases.push(
-					new TestCase(
+					new ResolveTestCase(
 					id:String.format('%03d',i),
 					name:it.name.text(),
 					request:trimSOAPreq(it.request[0].content.text()),
@@ -284,7 +311,7 @@ class TestWebservice {
 
 			for ( testCase in initTestCases ) {
 				println("Executing testscase for"+ testCase.toString())
-				TestCase tc=executeTestCase(testCase)
+				ResolveTestCase tc=executeTestCase(testCase)
 				flgSuccess=flgSuccess & tc.success;
 				suite.testCases.push(tc)
 			}

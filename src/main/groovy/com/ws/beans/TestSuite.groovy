@@ -2,13 +2,13 @@ package com.ws.beans
 
 import java.util.Date;
 
-import com.ws.beans.TestCase;
+import com.ws.beans.ResolveTestCase;
 import com.ws.helpers.Constants
 
 class TestSuite {
 
 	// properties
-	List<TestCase> testCases=new ArrayList<TestCase>();
+	def  testCases=new ArrayList<ResolveTestCase>();
 	Date startTime
 	Date endTime
 	boolean success
@@ -51,7 +51,7 @@ class TestSuite {
 		} 
 		sb.append("-----------------------------------").append(Constants.NEW_LINE)
 		sb.append("-------Testcase Results------------").append(Constants.NEW_LINE)
-		for(TestCase testCase:this.testCases){
+		for(ResolveTestCase testCase:this.testCases){
 			
 			sb.append(testCase.toFormattedString()).append(Constants.NEW_LINE)
 			

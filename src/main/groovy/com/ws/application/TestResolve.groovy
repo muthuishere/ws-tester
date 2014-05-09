@@ -4,7 +4,7 @@ package com.ws.application
 
 import java.util.Date;
 
-import com.ws.beans.TestCase
+import com.ws.beans.ResolveTestCase
 import com.ws.beans.TestCondition;
 import com.ws.beans.TestSuite
 
@@ -64,7 +64,7 @@ public class TestResolve {
 	def	appConfig = new ConfigSlurper("current").parse(configFile.toURL())
 		
 		
-		TestResolveWebService tester= new TestResolveWebService(appConfig);
+		ResolveWebService tester= new ResolveWebService(appConfig);
 		
 		
 		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml' )
@@ -114,7 +114,7 @@ if(1 == 1){
 		
 		
 		
-		TestWebservice tester= new TestWebservice(
+		Webservice tester= new Webservice(
 			activeConfig:appConfig
 			);
 		

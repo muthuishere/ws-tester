@@ -5,21 +5,25 @@ import java.util.Date;
 import com.ws.beans.TestCondition;
 import com.ws.helpers.Constants
 
-class TestCase {
+class ResolveTestCase {
 	// properties
 	String id
 	String	name
 	String request
 	
-	TestCondition[] positiveConditions
-	TestCondition[] negativeConditions
 	TestException exception
 	
+	def actionTaskConditions=[]
+	def actionTaskResults=[]
+	
+	def processId
+	//problem id url
+	def resulturl
 	
 	String response
 	String errDescription
 	boolean success
-	
+	boolean completed
 	Date startTime
 	Date endTime
 	

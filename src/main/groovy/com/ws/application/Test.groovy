@@ -1,6 +1,6 @@
 package com.ws.application
 
-import com.ws.beans.TestCase
+import com.ws.beans.ResolveTestCase
 import com.ws.beans.TestCondition
 
 class Test {
@@ -70,7 +70,7 @@ class Test {
 </testsuite>
 """
 		
-def tws=new TestResolveWebService()
+def tws=new ResolveWebService()
 tws.resolveToken="XXXX"
 println(tws.parseTestSuite(response))
 
