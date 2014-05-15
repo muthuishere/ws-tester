@@ -5,7 +5,7 @@ package com.ws.application
 import java.util.Date;
 
 import com.ws.beans.ResolveTestCase
-import com.ws.beans.TestCondition;
+import com.ws.beans.StringCondition;
 import com.ws.beans.TestSuite
 
 import wslite.soap.*
@@ -67,7 +67,7 @@ public class TestResolve {
 		ResolveWebService tester= new ResolveWebService(appConfig);
 		
 		
-		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testcase.xml' )
+		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testsuite.xml' )
 
 		println(result.toString());
 		
@@ -75,8 +75,7 @@ public class TestResolve {
 		
 		
 		println(result.toFormattedString());
-		
-		println("hi")
+	
 		
 	}
 	static main(args) {

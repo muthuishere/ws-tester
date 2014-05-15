@@ -5,10 +5,12 @@ import java.util.ArrayList;
 
 
 
+
+import com.ws.beans.ActionTaskResult
 import com.ws.beans.ServiceRequest
 import com.ws.beans.ResolveTestCase
 import com.ws.beans.ActionTaskCondition
-import com.ws.beans.TestCondition;
+import com.ws.beans.StringCondition;
 import com.ws.beans.TestSuite;
 import com.ws.helpers.*
 
@@ -72,34 +74,55 @@ class ResolveWebService extends Webservice {
 			throw new Exception("Unable to generate token"+e.getMessage())
 		}
 	}
-	def setProcessID(def testCase,def response){
+	def getProcessId(def response){
 
+		def processId=null
 		try{
 
 			def xml=new XmlSlurper().parseText(response);
 
+			
 
 			xml.Body.startRunbookResponse.return.each{item ->
 
 
 				if(item.name.text().equals(Constants.RESOLVE_TESTCASE_PROCESSID_DENOTER))
-					testCase.processId=item.value.text()
+					processId=item.value.text()
 			}
+			return processId
 		}catch(Exception e){
 			throw new Exception ("Unable to parse Process id $e" )
 		}
 	}
+	
 	//Use get runbook status completed
-	def isProcessReady(def testcase){
+	def isProcessCompleted(def runbookStatus){
+		
+		return (runbookStatus.get(Constants.RESOLVE_RUNBOOK_STATUS_DENOTER)?.equals(Constants.RESOLVE_RUNBOOK_STATUS_COMPLETE_DENOTER))
+		
+	}
+	
+	//Use get runbook status aborted
+	def isProcessAborted(def runbookStatus){
+		
+		return (runbookStatus.get(Constants.RESOLVE_RUNBOOK_STATUS_DENOTER)?.equals(Constants.RESOLVE_RUNBOOK_STATUS_ABORT_DENOTER))
+				
+		
+		
+		
+	}
+	
+	//Use get runbook status completed
+	def getRunbookStatus(def token,def processId){
 
 		//for process id , check runbook is completed or aborted
 
 		boolean processCompleted=false
-		
+		def runbookStatus=[:]
 		try{
 			def processRequest=new ServiceRequest(
 					template:Templates.GET_RUNBOOK_STATUS_TEMPLATE,
-					params:["token":token,"processid":testcase.processId]
+					params:["token":token,"processid":processId]
 					).soapRequest;
 
 			println(processRequest)
@@ -107,27 +130,18 @@ class ResolveWebService extends Webservice {
 			def response=getSoapResponse(processRequest)
 			def xml=new XmlSlurper().parseText(response);
 			
+			
 			xml.Body.getRunbookStatusResponse.return.each{item ->
 				
 				
-								if(item.name.text().equals(Constants.RESOLVE_RUNBOOK_STATUS_DENOTER) ){
-									
-									def status=item.value.text()
-									if(status.equals(Constants.RESOLVE_RUNBOOK_STATUS_COMPLETE_DENOTER))
-										processCompleted=true
-										
-										if(status.equals(Constants.RESOLVE_RUNBOOK_STATUS_ABORT_DENOTER))
-											throw new Exception("Process Aborted")
-										
-									
-									
-									} 
-									
+				
+				runbookStatus.put( item.name.text(), item.value.text() )
+			
 							}
 			
 			//Verify Status is completed
 			
-			return processCompleted;
+			return runbookStatus;
 		}catch(Exception e){
 
 			throw new Exception("Exception while Checking process state "+e.getMessage())
@@ -135,8 +149,9 @@ class ResolveWebService extends Webservice {
 
 	}
 
+
 	//get runbook results
-	def getRunbookResults(def testcase){
+	def getActionTaskResultsFromRunbook(def token,def processId){
 
 		//for process id , check runbook is completed or aborted
 
@@ -145,7 +160,7 @@ class ResolveWebService extends Webservice {
 		try{
 			def runbookResultRequest=new ServiceRequest(
 					template:Templates.GET_RUNBOOK_RESULT_TEMPLATE,
-					params:["token":token,"processid":testcase.processId]
+					params:["token":token,"processid":processId]
 					).soapRequest;
 
 			println(runbookResultRequest)
@@ -153,67 +168,221 @@ class ResolveWebService extends Webservice {
 			def response=getSoapResponse(runbookResultRequest)
 			def xml=new XmlSlurper().parseText(response);
 			
-			xml.Body.getRunbookResultResponse.return.columns.each{item ->
+			xml.Body.getRunbookResultResponse.return.each{returnitem ->
 				
-				actionTaskResults.push(
+				
+				def actiontaskresult=new ActionTaskResult()
+				returnitem.columns.each{colItem ->
 					
-					);
+					actiontaskresult.parse( colItem.name.text(), colItem.value.text() )
+					
+				}
 				
-								if(item.name.text().equals(Constants.RESOLVE_RUNBOOK_STATUS_DENOTER) ){
-									
-									def status=item.value.text()
-									if(status.equals(Constants.RESOLVE_RUNBOOK_STATUS_COMPLETE_DENOTER))
-										processCompleted=true
-										
-										if(status.equals(Constants.RESOLVE_RUNBOOK_STATUS_ABORT_DENOTER))
-											throw new Exception("Process Aborted")
-										
-									
-									
-									}
+				actionTaskResults.push(actiontaskresult)
+				
+				
+				
+				
 									
 							}
 			
 			//Verify Status is completed
 			
-			return processCompleted;
+			return actionTaskResults;
 		}catch(Exception e){
 
-			throw new Exception("Exception while Checking process state "+e.getMessage())
+			throw new Exception("Exception while Getting runbook results "+e.getMessage())
 		}
 
 	}
 
+	//Method to retrieve action task details
+	def getActionTaskDetails(def token , def actionId){
+		
+			def detail=""
+				
+				
+				try{
+					def getActionDetailRequest=new ServiceRequest(
+							template:Templates.GET_ACTION_DETAIL_REQUEST_TEMPLATE,
+							params:["token":token,"actionid":actionId]
+							).soapRequest;
+		
+					println(getActionDetailRequest)
+		
+					def response=getSoapResponse(getActionDetailRequest)
+					def xml=new XmlSlurper().parseText(response);
+					
+					
+					xml.Body.getActionDetailResultResponse.return.each{item ->
+						
+						
+						
+						detail=item.value.text() 
+						
+									}
+					
+				
+					
+					return detail;
+				}catch(Exception e){
+		
+					throw new Exception("Exception while Getting action task details "+e.getMessage())
+				}
+		
+				
+		
+	}
+	
+	def waitTillCompleted(def token,def processId){
+		
+		
+		//verify testcase process is completed in a loop with sleep
+		def runBookStatus
+		def flgCompleted=false
+		
+	while(!flgCompleted){
+		
+		
+		pause(5)
+		runBookStatus=getRunbookStatus(token,processId)
+		
+		flgCompleted=isProcessCompleted(runBookStatus)
+		
+		if(isProcessAborted(runBookStatus))
+			throw new Exception("Runbook Aborted")
+		
+	}
+	
+	
+		
+	}
 	//use getrunbookresult
 	//iterate for
 
-	def verifyTestcase(def testCase){
+	def verifyTestcase(ResolveTestCase testCase){
 
+		
+		if(testCase.completed)
+		return
+		
+		
+		
+		boolean flgresultPositive=true;
+		def failDescription =""
 		try{
+			
+			  
+				
+				
+			//Check for testcase not completed
+			//if completed return
+			
+			
 
-			//check for process id
+				
+				waitTillCompleted(this.resolveToken,testCase.processId)
+			
+			
+			
+			//get testcase results for process id
+			
+			def actionTaskResults=getActionTaskResultsFromRunbook(this.resolveToken,testCase.processId)
 
-			// get process id and get runbook result
-			def xml=new XmlSlurper().parseText(response);
-
-
-			xml.Body.startRunbookResponse.return.each{item ->
-
-
-				if(item.name.text().equals(Constants.RESOLVE_TESTCASE_PROCESSID_DENOTER))
-					testCase.processId=item.value.text()
-
-			}
-
-
-
+			testCase.actionTaskResults=actionTaskResults
+			failDescription=getFailDescription(testCase.actionTaskResults,testCase.actionTaskConditions)
+				
+					
+			
 		}catch(Exception e){
-			throw new Exception ("Unable to parse Process id $e" )
+			
+			println("Unable to verify testcase $e" )
+			failDescription=failDescription + e.getMessage();
+			flgresultPositive=false;
+			
+		}finally{
+		
+			testCase.errDescription=failDescription;
+			testCase.success=flgresultPositive;
+			testCase.completed=true
+			testCase.endTime=new Date();
 		}
 
 
 	}
+	
+	//Throws Error when test fails
 
+	def getFailDescription(def actionTaskResults ,def  actionTaskConditions){
+		
+		//Iterate Action task name in testcases
+		//for each action task get the details
+		boolean flgresultPositive=true;
+		def failDescription =""
+		
+		for(ActionTaskCondition condition:  actionTaskConditions){
+			println(condition)
+			
+			ActionTaskResult actionTaskResult = actionTaskResults.find{it.name ==condition.name}
+			println(actionTaskResult.toString())
+			if(actionTaskResult){
+				
+				def actionId=actionTaskResult.id
+				
+				if(null != condition.details){
+					def details=getActionTaskDetails(this.resolveToken ,  actionId)
+					actionTaskResult.details=details
+					println("====== Details ============")
+					println(actionTaskResult.toString())
+					
+				}
+				
+			}
+			
+		}
+
+
+
+		
+		
+	//	println(actionTaskResults.toString())
+		
+		
+		actionTaskConditions.each{actionTaskCondition ->
+			
+			
+			ActionTaskResult actionTaskResult = actionTaskResults.find{it.name ==actionTaskCondition.name}
+			
+			
+			
+			try{
+				boolean flgVerify=ResultVerifier.verify(actionTaskCondition, actionTaskResult)
+				flgresultPositive=flgresultPositive & flgVerify
+				
+			}catch(Exception e){
+				e.printStackTrace();
+				println("Failed during verification" + e.getMessage())
+				flgresultPositive=false;
+				failDescription=failDescription +"  " +  e.getMessage();
+			
+			}
+			
+	
+			
+			
+	
+	
+			
+		};
+	
+		if(failDescription == "")
+			failDescription=null
+		
+		return failDescription
+		
+		
+		
+	}
 	@Override
 	def reExecuteTestCase(def testCase){
 
@@ -244,10 +413,12 @@ class ResolveWebService extends Webservice {
 		def soapresponse =""
 		try{
 
-
+			println("--------------------------")
+			println(testCase.request)
 			soapresponse=getSoapResponse(testCase.request)
-
-
+			println("--------------------------")
+			println(soapresponse)
+			println("--------------------------")
 
 		}catch(Exception t){
 
@@ -274,7 +445,7 @@ class ResolveWebService extends Webservice {
 
 
 			//Set process id in test case
-			setProcessID(testCase,soapresponse)
+			testCase.processId=getProcessId(soapresponse)
 
 			println(testCase.toString())
 
@@ -294,19 +465,69 @@ class ResolveWebService extends Webservice {
 	}
 
 
+	def parseStringCondition(def stringNode){
+		
+		
+		if(null == stringNode)
+			return null
+			
+		def elemContains=[]
+		def elemNotContains=[]
+		
+		stringNode?.contains?.each{ item ->
+			
+			if(item.text().trim().length() >0)
+				elemContains.push(item.text())
+			
+		}
+		
+		stringNode?.notcontains?.each{ item ->
+			
+			if(item.text().trim().length() >0)
+				elemNotContains.push(item.text())
+			
+		}
+		
+		def stringCondition=new StringCondition(
+			contains:elemContains,
+			notcontains:elemNotContains
+			)
+	
+		
+		
+		if(elemContains.empty && elemNotContains.empty ){
+			
+			
+			println(stringNode.text().trim().length())
+			
+			if(stringNode.text().trim().length() >0)
+				stringCondition.equalString=stringNode.text().trim()
+			else
+				return null	
+		}
+		
+		println("stringCondition")
+		println(stringCondition)
+		println("===============")
+		return stringCondition
+	}
 
 	def parseActionTaskConditions(condNode){
 
 		def actionTasks=[]
 
-		reqNode?.actiontask.each{item ->
+	
+		condNode?.actiontask.each{item ->
 
 
 			actionTasks.push(
 					new ActionTaskCondition(
-					name:item.'@name'.text(),
-					positiveConditions:parseConditions(item.verify,true),
-					negativeConditions:parseConditions(item.verifynegative,false),
+					name:item.'@name'?.text(),
+					condition:getStringOrNull(item?.condition?.text()),
+					severity:getStringOrNull(item?.severity?.text()),
+					completed:getStringOrNull(item?.completed?.text()),
+					summary:parseStringCondition(item?.summary),
+					details:parseStringCondition(item?.details)
 					)
 					)
 
@@ -314,7 +535,25 @@ class ResolveWebService extends Webservice {
 
 
 		}
+		
+		println("Action Tasks")
+		println(actionTasks.toString())
+		println("============")
 		return actionTasks
+	}
+	
+	def getStringOrNull(String item){
+		
+		if(null == item)
+			return null
+			
+		if(item.trim().length() == 0)
+			return null
+			
+		return item.trim();
+				
+			
+		
 	}
 	def parseRequest(reqNode){
 
@@ -335,12 +574,16 @@ class ResolveWebService extends Webservice {
 		}
 
 
+		
 		def runbookRequest=new ServiceRequest(
 				template:Templates.START_RUNBOOK_TEMPLATE,
-				params:["runbookname":reqNode.resolverunbook[0].'@name'.text(),"token":resolveToken,"params":runbookparams]
+				params:["runbookname":reqNode.'@name'.text(),"token":resolveToken,"params":runbookparams]
 
 				).soapRequest
 
+			println(runbookRequest)
+		
+			  
 		return trimSOAPreq(runbookRequest);
 
 	}
@@ -365,8 +608,7 @@ class ResolveWebService extends Webservice {
 					id:String.format('%03d',i),
 					name:it.name.text(),
 					request:parseRequest(it.runbook[0]),
-					actionTaskConditions:parseActionTaskConditions(it.conditions[0]),
-					exception:parseException(it.conditions[0].verifyexception)
+					actionTaskConditions:parseActionTaskConditions(it.conditions[0])					
 					)
 					)
 
@@ -377,6 +619,12 @@ class ResolveWebService extends Webservice {
 
 	}
 
+	public void pause(int secs){
+		
+		println("Pausing for $secs seconds ")		
+		Thread.sleep(1000* secs)
+		println("Resuming Operations ")
+	}
 	public TestSuite startTest(def testCaseFile) {
 
 
@@ -423,12 +671,28 @@ class ResolveWebService extends Webservice {
 			//Testcases completed check test cases are parsed fine
 
 			for ( testCase in initTestCases ) {
-				println("Executing testscase for"+ testCase.toString())
+				println("Executing testscase for"+ testCase.name)
 				ResolveTestCase tc=executeTestCase(testCase)
 
-				flgSuccess=flgSuccess & tc.success;
+				
 				suite.testCases.push(tc)
 			}
+			
+			
+			
+			pause(60 * 2)
+			
+			for (ResolveTestCase resolveTestCase in suite.testCases ) {
+				
+				
+				println("Verifying  testcase for"+ resolveTestCase.name)
+				verifyTestcase(resolveTestCase)
+				flgSuccess=flgSuccess & resolveTestCase.success;
+				
+			}
+			
+			
+			
 
 			suite.success=flgSuccess
 			suite.completed=true;
@@ -442,12 +706,105 @@ class ResolveWebService extends Webservice {
 			suite.success=false;
 			suite.completed=false;
 		}
+	
 
 		//	println(suite.toString());
 		suite.endTime=new Date();
 		return suite;
 
 	}
+	
+	//DUMMY Tests
+	
+	
+	def parsetests(def condresponse,def resultresponse){
+		
+		
+		println(resultresponse)
+		def conditions=testparseConditions(condresponse)
+		def actionTaskResults=testparseresults(resultresponse)
+		println("=========actionTaskResults=========")
+		println(actionTaskResults.toString())
+		println("=========end actionTaskResults=========" + conditions[0].name)
+		ActionTaskResult actionTaskResult = actionTaskResults.find{it.name ==conditions[0].name}
+		println("=========Single actionTaskResults=========")
+		println(actionTaskResult.toString())
+		println("=========end single  actionTaskResults=========")
+		def failDescription=getFailDescription(actionTaskResult,conditions[0])
+		
+		println(failDescription)
+	}
+	def testparseConditions(def response ){
+		
+	
+		def condNode=new XmlSlurper().parseText(response);
+			
+					def actionTasks=[]
+					
+				
+					condNode?.actiontask.each{item ->
+			
+			
+						actionTasks.push(
+								new ActionTaskCondition(
+								name:item.'@name'?.text(),
+								condition:getStringOrNull(item?.condition?.text()),
+								severity:getStringOrNull(item?.severity?.text()),
+								completed:getStringOrNull(item?.completed?.text()),
+								summary:parseStringCondition(item?.summary),
+								details:parseStringCondition(item?.details)
+								)
+								)
+			
+			
+			
+			
+					}
+					
+					println("Action Tasks")
+					println(actionTasks.toString())
+					println("============")
+					return actionTasks
+				
+		
+	}
+	def testparseresults(def response ){
+		
+				//for process id , check runbook is completed or aborted
+		
+				def actionTaskResults=[]
+				
+				try{
+				
+					def xml=new XmlSlurper().parseText(response);
+					
+					xml.Body.getRunbookResultResponse.return.each{returnitem ->
+						
+						
+						def actiontaskresult=new ActionTaskResult()
+						returnitem.columns.each{colItem ->
+							
+							actiontaskresult.parse( colItem.name.text(), colItem.value.text() )
+							
+						}
+						
+						actionTaskResults.push(actiontaskresult)
+						
+						
+						
+						
+											
+									}
+					
+					//Verify Status is completed
+					
+					return actionTaskResults;
+				}catch(Exception e){
+		
+					throw new Exception("Exception while Getting runbook results "+e.getMessage())
+				}
+		
+			}
 
 
 }

@@ -26,24 +26,26 @@
 	
 	<conditions>
 	
-		<actiontask name="xxx">
+		<actiontask name="end point coverage">
 		
 			<verify>
 			<!-- Iterate zero or more -->
-			<param></param>
+			<param>There is no Three coverage</param>
 		
 			</verify>
 		<!-- Iterate zero or more -->	
 			<verifynegative>
 				<!-- Iterate zero or more -->		
-			<param></param>
+			<param>alkarani</param>
 			</verifynegative>
 		</actiontask>
 		
+		<!-- 
 		<verifyexception>
-				<!-- Iterate zero or more -->		
+				Iterate zero or more 	
 			<param></param>
 			</verifyexception>
+			-->	
 	</conditions>	
 </testcase>
 

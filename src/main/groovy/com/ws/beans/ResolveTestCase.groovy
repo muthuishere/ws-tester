@@ -2,7 +2,7 @@ package com.ws.beans
 
 import java.util.Date;
 
-import com.ws.beans.TestCondition;
+import com.ws.beans.StringCondition;
 import com.ws.helpers.Constants
 
 class ResolveTestCase {

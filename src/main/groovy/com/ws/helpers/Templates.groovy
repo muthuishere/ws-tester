@@ -27,6 +27,40 @@ public static  String RUNBOOK_PARAM_TEMPLATE="""
 """
 
 
+public static String EXECUTE_RUNBOOK_TEMPLATE="""
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.resolve-systems.com/resolve/WebServiceListener/xsd" xmlns:xsd1="http://webservice.resolve.com/xsd">
+   <soap:Header/>
+   <soap:Body>
+      <xsd:executeRunbook>
+         <!--Optional:-->
+          <xsd:token>#token#</xsd:token>
+         <!--Zero or more repetitions:-->
+        	<xsd:params>
+            <!--Optional:-->
+            <xsd1:name>WIKI</xsd1:name>
+            <!--Optional:-->
+            <xsd1:value>#runbookname#</xsd1:value>
+         </xsd:params>         
+		<xsd:params>
+            <!--Optional:-->
+            <xsd1:name>ACTION</xsd1:name>
+            <!--Optional:-->
+            <xsd1:value>EXECUTEPROCESS</xsd1:value>
+         </xsd:params>
+		 <xsd:params>
+            <!--Optional:-->
+            <xsd1:name>PROBLEMID</xsd1:name>
+            <!--Optional:-->
+            <xsd1:value>NEW</xsd1:value>
+         </xsd:params>
+			
+#params#
+
+      </xsd:executeRunbook>
+   </soap:Body>
+</soap:Envelope>
+"""
+
 public static  String START_RUNBOOK_TEMPLATE="""
 
 <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.resolve-systems.com/resolve/WebServiceListener/xsd" xmlns:xsd1="http://webservice.resolve.com/xsd">
@@ -178,4 +212,41 @@ public static  String GET_RUNBOOK_RESULT_TEMPLATE="""
    </soap:Body>
 </soap:Envelope>
 """
+
+
+
+/*
+ * 
+ * <soapenv:Envelope xmlns:soapenv="http://www.w3.org/2003/05/soap-envelope">
+   <soapenv:Body>
+      <ns:getActionDetailResultResponse xmlns:ns="http://www.resolve-systems.com/resolve/WebServiceListener/xsd" xmlns:ax21="http://webservice.resolve.com/xsd">
+         <ns:return xsi:type="ax21:Pair" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ax21:name>DETAIL</ax21:name>
+            <ax21:value>End Point Category: COVERAGE
+End Point: COVERAGE_005
+Cause: There is no Three coverage in this area and is served by Orange. But there is no issue identified.
+Instruction: Tell the customer &amp;quot;I cannot see any issue with the network in your area so I will have to raise this with my technical team.  One of my collegues will call you within 5 days with an update&amp;quot; Raise a case for further network investigations (Case Type - Faults; Case Sub Type - Voice; Detail - Voice - Cannot Make Calls; Provider Group - 2nd Line Network Support).</ax21:value>
+         </ns:return>
+      </ns:getActionDetailResultResponse>
+   </soapenv:Body>
+</soapenv:Envelope>
+ * 
+ */
+public static String GET_ACTION_DETAIL_REQUEST_TEMPLATE="""
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:xsd="http://www.resolve-systems.com/resolve/WebServiceListener/xsd">
+   <soap:Header/>
+   <soap:Body>
+      <xsd:getActionDetailResult>
+         <!--Optional:-->
+            <xsd:token>#token#</xsd:token>
+         <!--Optional:-->
+         <xsd:actionID>#actionid#</xsd:actionID>
+
+      </xsd:getActionDetailResult>
+   </soap:Body>
+</soap:Envelope>
+
+""" 
+
 }
+

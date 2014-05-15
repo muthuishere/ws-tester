@@ -1,0 +1,58 @@
+<testsuite>
+<testcase>
+<name>TC_001</name>
+	
+		<runbook name="LTE.VoiceDiagnostic">
+		
+			<params>
+				<!-- Iterate one or many-->	
+				<param name="MSISDN" value="447830750719"/>
+				<param name="ISSUE" value="MC"/>
+				<param name="USER" value="mnavaneethakrishnan"/>
+				<param name="DEVICE" value="5"/>
+				<param name="MANUALMANUFACTURER" value="Apple"/>
+				<param name="MANUALMODEL" value="iPhone 5S"/>
+				<param name="SPECIFICAREAS" value="ALL"/>
+				<param name="POSTCODE" value="SL61EH"/>
+				<param name="LOCATION" value="1"/>				
+				<param name="TIMEOFDAY" value="ALLDAY"/>
+				<param name="INDOORSOUTDOORS" value="BOTH"/>
+				<param name="SIGNALSTRENGTH" value="NOSIGNAL"/>
+				<param name="LASTOCCURREDDATE" value="14/04/2014"/>				
+				<param name="LASTOCCURREDTIME" value="10:00"/>				
+				<param name="SPECIFICNUMBER" value=""/>
+			</params>
+		</runbook>
+		<!-- RAW request Content if required -->
+		
+		
+	
+	<conditions>
+	
+		<actiontask name="generate end point results">
+			<condition> </condition>
+			<severity> </severity>
+			<completed> </completed>
+				<summary> 
+					<contains>End Point Reached</contains>
+					<notcontains>WTTTT</notcontains>
+				</summary>
+		
+				<details> 
+					<contains>There is a problem with the Network and we are trying to resolve</contains>
+					<notcontains>XXX YYY</notcontains>
+				</details>
+		
+			
+		</actiontask>
+		
+		<!-- 
+		<verifyexception>
+				Iterate zero or more 	
+			<param></param>
+			</verifyexception>
+			-->	
+	</conditions>	
+</testcase>
+
+</testsuite>

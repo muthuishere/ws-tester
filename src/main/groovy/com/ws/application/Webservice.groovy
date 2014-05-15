@@ -1,7 +1,7 @@
 package com.ws.application
 
 import com.ws.beans.ResolveTestCase;
-import com.ws.beans.TestCondition
+import com.ws.beans.StringCondition
 import com.ws.beans.TestException
 import com.ws.beans.TestSuite
 import com.ws.helpers.Constants
@@ -24,20 +24,18 @@ class Webservice {
 	def parseConditions(def testConditions,boolean conditionPositive){
 
 
-		def conditions=[];
+		def conditions=new StringCondition();
 
 
 
 		if(null != testConditions){
 			testConditions.param.each{
 
-				conditions.add(
-						new TestCondition(
-
-						condition:trimSOAPreq(it.text()),
-						positive:conditionPositive
-						)
-						)
+				if(conditionPositive)
+					conditions.contains.push(trimSOAPreq(it.text()))
+				else
+					conditions.notcontains.push(trimSOAPreq(it.text()))
+			
 			}
 		}
 		return conditions;
@@ -93,19 +91,17 @@ class Webservice {
 	
 	
 
-	boolean verify(String response,TestCondition testCondition){
-		println("==")
-		print("verifying response contains condition" + testCondition.toString() )
-		print("response.contains(testCondition.condition) " + response.contains(testCondition.condition)  + "testCondition.positive" + testCondition.positive)
-		println("==")
-
-		if(response.contains(testCondition.condition) && testCondition.positive)
-			return true
-
-		if(response.contains(testCondition.condition) ==false && testCondition.positive==false)
-			return true
-
-		return false;
+	boolean verify(String response,StringCondition testCondition){
+		
+		
+		try{
+			testCondition.verify(response)
+			return true;
+		}catch(Exception e){
+			println("Error in verifying" + e.getMessage())
+			return false
+		}
+	
 
 
 	}
@@ -152,7 +148,12 @@ class Webservice {
 	
 			
 	
-	
+			
+	//TODO Change
+			
+			if(1 == 1)
+			throw new Exception("Not Implemented")
+			
 				testCase.positiveConditions.eachWithIndex() { positiveCondition, i ->
 	
 					boolean flgVerify=verify(soapresponse,positiveCondition)

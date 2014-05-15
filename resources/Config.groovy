@@ -3,9 +3,9 @@
 
 
 //Connection Timeout in milliseconds
-connectionTimeout=57000
+connectionTimeout=240000
 //Read Timeout in milliseconds
-readTimeout=57000
+readTimeout=240000
 resolveuser="mnavaneethakrishnan"
 resolvepwd="Superstar1*"
 
@@ -19,7 +19,7 @@ environments {
 	  user= "hutchison3g\\mnavaneethakrishnan"
 	  password= "welcome123"
     }
-	connectionTimeout=9000
+	
 	resolveuser="mnavaneethakrishnan"
 	resolvepwd="Superstar1*"
   }
