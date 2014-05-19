@@ -22,6 +22,7 @@ environments {
 	
 	resolveuser="mnavaneethakrishnan"
 	resolvepwd="Superstar1*"
+	exportpath="C:\\muthu\\resolve\\test\\ws-tester\\resources\\export"
   }
   
 }

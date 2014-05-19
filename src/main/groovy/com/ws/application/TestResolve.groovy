@@ -9,7 +9,7 @@ import com.ws.beans.StringCondition;
 import com.ws.beans.TestSuite
 
 import wslite.soap.*
-
+import com.ws.helpers.Utils
 
 
 public class TestResolve {
@@ -67,14 +67,23 @@ public class TestResolve {
 		ResolveWebService tester= new ResolveWebService(appConfig);
 		
 		
-		TestSuite result= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testsuite.xml' )
-
-		println(result.toString());
+		TestSuite suite= 	tester.startTest('C:\\muthu\\resolve\\test\\ws-tester\\resources\\testsuite.xml' )
+		
+		def now = new Date()
+		
+		def dateString = now.format("yyyy_MMM_dd_HH_mm_ss_a")
+		
+		
+		def exportFile = appConfig.exportpath + File.separator + "TestSuite_" + dateString +".html" ;
+		
+		Utils.exportReport(suite,exportFile)
+		
+		//println(result.toString());
 		
 		
 		
 		
-		println(result.toFormattedString());
+		println("Test Results Exported to path $exportFile");
 	
 		
 	}

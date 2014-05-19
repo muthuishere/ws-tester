@@ -3,6 +3,8 @@ package com.ws.application
 import com.ws.beans.ActionTaskResult
 import com.ws.beans.ResolveTestCase
 import com.ws.beans.StringCondition
+import com.ws.beans.TestSuite
+import groovy.time.TimeCategory
 
 class Test {
 
@@ -52,19 +54,65 @@ class Test {
 			
 		</actiontask>
 		
+	<actiontask name="retrieve diagnostic parameters">
+			<condition>GOOD</condition>
+			<severity> </severity>
+			<completed> </completed>
+				<summary> 
+					<contains>End Point Reached</contains>
+					<notcontains>WTTTT</notcontains>
+				</summary>
+		
+			
+		</actiontask>
+
 		
 	</conditions>	
 """
-		def resultresponse="""
-
-"""
+		
 		
 		ResolveWebService re=new ResolveWebService()
-		re.parsetests( condresponse, new File('C:\\muthu\\resolve\\test\\ws-tester\\resources\\resultresponse.xml').text)
+		def responses=re.parsetests( condresponse, new File('C:\\muthu\\resolve\\test\\ws-tester\\resources\\resultresponse.xml').text)
 			
 			
+		TestSuite ts=new TestSuite();
+		ts.startTime=new Date();
+		
+		Date tcTime
+		use( TimeCategory ) {
+			ts.endTime=new Date()  + 3.minutes
+			tcTime=new Date()  + 2.minutes
+		}
+		ts.success=true;
+		ts.completed=true
+		
+	
+			
+		ts.testCases.push(new ResolveTestCase(
+			name:"LTE.voicediagnostics",
+			id:"TC_120",
+			startTime:new Date(),
+			endTime:tcTime,
+			actionTaskVerificationResponses:responses
+			
+			));
+		
+		
+		String templateContent = this.getClass().getResource( '/com/ws/reports/testsuite-template.html' ).text
+		
+		println(responses)
+		
 
-
+		def inModel = [testSuite:ts]
+		def engine = new groovy.text.GStringTemplateEngine()
+		def template = engine.createTemplate(templateContent)
+		def writer = new StringWriter()
+		template.make(inModel).writeTo(writer)
+		writer.flush()
+	
+		new File("C:\\muthu\\resolve\\test\\ws-tester\\resources\\tmp.html").write(writer.toString())
+	
+		println "Completed"
 			}
 	
 }

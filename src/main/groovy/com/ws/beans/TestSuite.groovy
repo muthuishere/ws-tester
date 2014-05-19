@@ -4,6 +4,7 @@ import java.util.Date;
 
 import com.ws.beans.ResolveTestCase;
 import com.ws.helpers.Constants
+import com.ws.helpers.ResultVerifier
 
 class TestSuite {
 
@@ -16,14 +17,33 @@ class TestSuite {
 	String description
 	
 	
-	def timeDiffSecs( ) {
-		def result=0d
-		if(null != endTime && null != startTime)
-			result = ( ( endTime.time - startTime.time ) / 1000.0 ) as double;
-			
-			
-		return result ;
+	def getStatus(){
+		
+		if(success)
+			return "Success"
+		else
+			return "Failure"
+		
+		
 	}
+	def getFormattedStatus(){
+		
+		if(success)
+			return "success"
+		else
+			return "failure"
+		
+		
+	}
+	
+	
+	def getTestCaseCount(){
+		
+		return testCases.size();
+		
+	}
+
+	
 	
 	String toFormattedString() {
 		StringBuilder sb= new StringBuilder();
@@ -31,7 +51,7 @@ class TestSuite {
 		
 
 		sb.append("----------Test Suite Results--------").append(Constants.NEW_LINE)
-		sb.append("Time Taken : "+ timeDiffSecs() +" secs").append(Constants.NEW_LINE)
+		sb.append("Time Taken : "+ ResultVerifier.getTimeDiffInSecs(startTime,endTime)  +" secs").append(Constants.NEW_LINE)
 		
 		if(success)
 		sb.append("RESULT: SUCCESS                   ").append(Constants.NEW_LINE)

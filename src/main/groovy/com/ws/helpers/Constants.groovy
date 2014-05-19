@@ -12,7 +12,7 @@ public static final String RESOLVE_RUNBOOK_STATUS_ABORT_DENOTER="ABORTED"
 public static final String RESOLVE_ACTIONTASK_DENOTER="ACTIONTASK"
 public static final String RESOLVE_ACTIONID_DENOTER="ACTIONID"
 
-
+public static final String RESOLVE_TESTCASE_TEMPLATE="/com/ws/reports/testsuite-template.html"
 
 
 

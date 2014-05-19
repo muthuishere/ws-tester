@@ -12,6 +12,8 @@ class ActionTaskResult {
 	def duration
 	def completion
 	def lastupdated
+	
+	
 
 
 	String toString() {

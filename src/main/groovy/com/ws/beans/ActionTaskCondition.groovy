@@ -8,6 +8,7 @@ class ActionTaskCondition {
 	StringCondition summary
 	StringCondition details
 	
+	
 	String toString() {
 		dump()
 	}

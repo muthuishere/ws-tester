@@ -5,6 +5,22 @@ class StringCondition {
 	def notcontains=[]
 	def equalString
 	
+	public String toFormatted(){
+		
+		if(null != equalString){
+			return "equals " +equalString
+		}
+		
+		def res=""
+		if(null != contains && contains.size() > 0 )
+			res="Contains ["+ contains.join(',') + "]"
+		
+		if(null != notcontains && notcontains.size() > 0 )
+			res=res + " Does not Contains ["+ notcontains.join(',') + "]"
+			
+		
+		return res;
+	}
 	boolean verify(def str) throws Exception{
 		
 		

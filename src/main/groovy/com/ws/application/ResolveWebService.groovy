@@ -7,11 +7,12 @@ import java.util.ArrayList;
 
 
 import com.ws.beans.ActionTaskResult
+import com.ws.beans.ActionTaskVerificationResponse
 import com.ws.beans.ServiceRequest
 import com.ws.beans.ResolveTestCase
 import com.ws.beans.ActionTaskCondition
 import com.ws.beans.StringCondition;
-import com.ws.beans.TestSuite;
+import com.ws.beans.TestSuite
 import com.ws.helpers.*
 
 class ResolveWebService extends Webservice {
@@ -199,7 +200,7 @@ class ResolveWebService extends Webservice {
 	//Method to retrieve action task details
 	def getActionTaskDetails(def token , def actionId){
 		
-			def detail=""
+			def detail=null
 				
 				
 				try{
@@ -269,7 +270,7 @@ class ResolveWebService extends Webservice {
 		
 		
 		boolean flgresultPositive=true;
-		def failDescription =""
+		def actionTaskVerificationResponses =[]
 		try{
 			
 			  
@@ -290,20 +291,23 @@ class ResolveWebService extends Webservice {
 			def actionTaskResults=getActionTaskResultsFromRunbook(this.resolveToken,testCase.processId)
 
 			testCase.actionTaskResults=actionTaskResults
-			failDescription=getFailDescription(testCase.actionTaskResults,testCase.actionTaskConditions)
+			actionTaskVerificationResponses=getActionTaskVerificationResponses(testCase.actionTaskResults,testCase.actionTaskConditions)
 				
+		
 					
 			
 		}catch(Exception e){
 			
 			println("Unable to verify testcase $e" )
-			failDescription=failDescription + e.getMessage();
-			flgresultPositive=false;
+			 
+			testCase.errDescription=e.getMessage();
+		
 			
 		}finally{
 		
-			testCase.errDescription=failDescription;
-			testCase.success=flgresultPositive;
+			
+			testCase.actionTaskVerificationResponses=actionTaskVerificationResponses
+			
 			testCase.completed=true
 			testCase.endTime=new Date();
 		}
@@ -313,15 +317,20 @@ class ResolveWebService extends Webservice {
 	
 	//Throws Error when test fails
 
-	def getFailDescription(def actionTaskResults ,def  actionTaskConditions){
+	def getActionTaskVerificationResponses(def actionTaskResults ,def  actionTaskConditions){
 		
 		//Iterate Action task name in testcases
 		//for each action task get the details
 		boolean flgresultPositive=true;
 		def failDescription =""
 		
+		
+		def actionTaskVerificationResponses=[]
+		
 		for(ActionTaskCondition condition:  actionTaskConditions){
 			println(condition)
+			
+		
 			
 			ActionTaskResult actionTaskResult = actionTaskResults.find{it.name ==condition.name}
 			println(actionTaskResult.toString())
@@ -339,6 +348,8 @@ class ResolveWebService extends Webservice {
 				
 			}
 			
+			
+			
 		}
 
 
@@ -353,19 +364,32 @@ class ResolveWebService extends Webservice {
 			
 			ActionTaskResult actionTaskResult = actionTaskResults.find{it.name ==actionTaskCondition.name}
 			
-			
+			def errMsg=null
+			def flgSuccess=true
 			
 			try{
-				boolean flgVerify=ResultVerifier.verify(actionTaskCondition, actionTaskResult)
-				flgresultPositive=flgresultPositive & flgVerify
+				ResultVerifier.verify(actionTaskCondition, actionTaskResult)
+				
+			
+				
 				
 			}catch(Exception e){
 				e.printStackTrace();
 				println("Failed during verification" + e.getMessage())
 				flgresultPositive=false;
 				failDescription=failDescription +"  " +  e.getMessage();
+				errMsg= e.getMessage()
+				flgSuccess=false
 			
 			}
+			
+			actionTaskVerificationResponses.push(new ActionTaskVerificationResponse(
+				actionTaskCondition:actionTaskCondition,
+				actionTaskResult:actionTaskResult,
+				description:errMsg,
+				success:flgSuccess
+				
+				))
 			
 	
 			
@@ -375,10 +399,9 @@ class ResolveWebService extends Webservice {
 			
 		};
 	
-		if(failDescription == "")
-			failDescription=null
 		
-		return failDescription
+		
+		return actionTaskVerificationResponses
 		
 		
 		
@@ -555,6 +578,17 @@ class ResolveWebService extends Webservice {
 			
 		
 	}
+	
+	def getRunbookName(reqNode){
+		
+		
+		
+		
+				
+					  
+				return trimSOAPreq(reqNode?.'@name'?.text());
+		
+			}
 	def parseRequest(reqNode){
 
 
@@ -607,6 +641,7 @@ class ResolveWebService extends Webservice {
 					new ResolveTestCase(
 					id:String.format('%03d',i),
 					name:it.name.text(),
+					runbookName:getRunbookName(it.runbook[0]),
 					request:parseRequest(it.runbook[0]),
 					actionTaskConditions:parseActionTaskConditions(it.conditions[0])					
 					)
@@ -730,9 +765,9 @@ class ResolveWebService extends Webservice {
 		println("=========Single actionTaskResults=========")
 		println(actionTaskResult.toString())
 		println("=========end single  actionTaskResults=========")
-		def failDescription=getFailDescription(actionTaskResult,conditions[0])
+		def actionTaskVerificationResponses=getActionTaskVerificationResponses(actionTaskResults,conditions)
 		
-		println(failDescription)
+		return actionTaskVerificationResponses
 	}
 	def testparseConditions(def response ){
 		

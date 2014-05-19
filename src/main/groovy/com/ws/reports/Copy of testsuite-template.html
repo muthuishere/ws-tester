@@ -90,11 +90,13 @@ border: 3px groove #A5A4A6;
 <table style="width:85%;margin:0 auto " cellspacing="0" border="0">
 <tbody>
 <tr>
-<td width="25%">Start Date </td><td width="25%" class="result">12/11/2004 </td>
-<td width="25%">End Date </td><td width="25%" class="result">12/11/2004 </td></tr>
+<td width="25%">Start Date </td><td width="25%" class="result">
+${testSuite.startDate}
+ </td>
+<td width="25%">End Date </td><td width="25%" class="result">${testSuite.endDate}</td></tr>
 <tr>
-<td width="25%">TestCases</td><td width="25%" class="result">2 </td>
-<td width="25%">Status </td><td width="25%" class="result success">SUCCESS </td>
+<td width="25%">TestCases</td><td width="25%" class="result">${testSuite.testCaseCount} </td>
+<td width="25%">Status </td><td width="25%" class="result ${testSuite.formattedstatus}">${testSuite.status} </td>
 </tr>
 <tr>
 <td  colspan="4">
@@ -104,20 +106,38 @@ border: 3px groove #A5A4A6;
 
 <tr>
 <td colspan="4">
-<div class="tc-success" >
+
+
+ <%
+ 
+  testSuite.testCases.each{ tc ->
+     
+     
+     %>
+     
+     
+     
+<div class="tc-${tc.formattedstatus}"  >
 
 <table  width="100%" cellpadding="0" cellspacing="0">
 <tbody>
 <tr>
-<td width="50%">Runbook  Name</td>
-<td width="50%">Testcase ID</td>
+<td width="50%">${tc.name}</td>
+<td width="50%">${tc.id}</td>
 </tr>
 <tr>
-<td>Status</td>
-<td>50 Secs</td>
+<td>${tc.status}</td>
+<td>${tc.duration}</td>
 </tr>
 <tr>
+
+
+
 <td colspan="2">
+
+<%
+if(null != tc.actionTaskVerificationResponses && tc.actionTaskVerificationResponses.size() >0){
+%>
 
 <h2> Testable Action Tasks</h2>
 <table id="testableActionTasks" border="2" cellspacing="0" cellpadding="0" width="100%"><tbody>
@@ -131,6 +151,8 @@ border: 3px groove #A5A4A6;
 <th rowspan="2">Result </th>
 <th rowspan="2">Comments </th>
 </tr>
+
+ 
 <tr>
 
 <th >Expected </th>
@@ -151,23 +173,51 @@ border: 3px groove #A5A4A6;
 
 </tr>
 
+<%
+ 
+  tc.actionTaskVerificationResponses.each{ response ->
+     
+     
+     %>
+     
+     
 <tr>
-<td>Action Task </td>
-<td>Completion expected </td>
-<td>Completion Actual </td>
-<td>Condition Expected</td>
-<td>Condition Actual</td>
-<td>Severity Expected</td>
-<td>Severity Actual</td>
-<td>Summary Expected</td>
-<td>Summary Actual</td>
-<td>Detail Expected</td>
-<td>Detail Actual</td>
-<td>Result </td>
-<td>Comments</td>
+<td>${response.name}</td>
+<td>${response.expectedCompletion} </td>
+<td>${response.actualCompletion}  </td>
+
+<td>${response.expectedCondition} </td>
+<td>${response.actualCondition}  </td>
+
+<td>${response.expectedSeverity} </td>
+<td>${response.actualSeverity}  </td>
+
+<td>${response.expectedSummary} </td>
+<td>${response.actualSummary}  </td>
+
+
+<td>${response.expectedDetails} </td>
+<td>${response.actualDetails}  </td>
+
+<td>
+
+
+${response.result}  </td>
+
+<td>${response.description}</td>
 </tr>
+
+     
+     <%
+     }
+     %>
+     
 
 </tbody></table></td></tr></tbody>
+
+<%
+}
+%>
 
 
 <td></td>
@@ -178,6 +228,14 @@ border: 3px groove #A5A4A6;
 </table>
 
 </div>
+
+     
+  <%
+  }
+  
+  
+  %>
+  
 </td>
 </tr>
 
